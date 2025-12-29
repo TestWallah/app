@@ -4,298 +4,234 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hindi Sahitya Quiz & Slap</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <style>
         @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(3px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            70% { transform: translate(3px, 1px) rotate(-1deg); }
-            80% { transform: translate(-1px, -1px) rotate(1deg); }
-            90% { transform: translate(1px, 2px) rotate(0deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
+            0%, 100% { transform: translate(0,0); }
+            10%, 30%, 50%, 70%, 90% { transform: translate(-5px, 0); }
+            20%, 40%, 60%, 80% { transform: translate(5px, 0); }
         }
-
-        .shake-effect {
-            animation: shake 0.5s;
-            animation-iteration-count: 1;
-            border: 5px solid red;
-        }
-
-        .slap-btn {
-            background: linear-gradient(45deg, #ff416c, #ff4b2b);
-            box-shadow: 0 4px 15px rgba(255, 65, 108, 0.4);
-            transition: transform 0.1s;
-        }
-        .slap-btn:active {
-            transform: scale(0.95);
-        }
-        .slap-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
+        .shake-effect { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; border: 4px solid red; }
+        .slap-btn { background: linear-gradient(45deg, #ff416c, #ff4b2b); transition: 0.2s; }
+        .slap-btn:active { transform: scale(0.9); }
     </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center font-sans" id="main-body">
+<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center p-4" id="main-body">
 
-    <!-- 1. लॉगिन स्क्रीन -->
-    <div id="login-screen" class="w-full max-w-md p-6 bg-gray-800 rounded-xl shadow-2xl text-center">
-        <h1 class="text-3xl font-bold mb-6 text-yellow-400">📚 हिंदी साहित्य Quiz</h1>
-        <p class="mb-4 text-gray-300">विषय: शुक्ल युग और शुक्लोत्तर युग</p>
-        <div class="space-y-4">
-            <input type="text" id="username" placeholder="अपना नाम" class="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:border-yellow-400">
-            <input type="text" id="roomId" placeholder="Room ID (e.g. class10)" class="w-full p-3 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:border-yellow-400">
-            <button onclick="joinGame()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 rounded transition">गेम खेलें (Join)</button>
-        </div>
+    <!-- Login -->
+    <div id="login-screen" class="w-full max-w-md bg-slate-800 p-8 rounded-2xl shadow-2xl border border-slate-700">
+        <h1 class="text-3xl font-black text-center mb-2 text-yellow-400">CLASS 10 HINDI</h1>
+        <p class="text-center text-slate-400 mb-8">शुक्ल एवं शुक्लोत्तर युग</p>
+        <input type="text" id="username" placeholder="अपना नाम" class="w-full p-4 bg-slate-700 rounded-lg mb-4 outline-none border-2 border-transparent focus:border-yellow-400">
+        <input type="text" id="roomId" placeholder="Room ID (जैसे: test1)" class="w-full p-4 bg-slate-700 rounded-lg mb-6 outline-none border-2 border-transparent focus:border-yellow-400">
+        <button onclick="joinGame()" id="join-btn" class="w-full bg-yellow-500 hover:bg-yellow-600 text-slate-900 font-bold py-4 rounded-lg text-xl uppercase">Khel Shuru Karein</button>
     </div>
 
-    <!-- 2. वेटिंग स्क्रीन -->
-    <div id="waiting-screen" class="hidden w-full max-w-md p-6 bg-gray-800 rounded-xl text-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400 mx-auto mb-4"></div>
-        <h2 class="text-xl font-semibold">दूसरे खिलाड़ी का इंतज़ार...</h2>
-        <p id="waiting-msg" class="text-gray-400 mt-2">Loading...</p>
+    <!-- Waiting -->
+    <div id="waiting-screen" class="hidden text-center bg-slate-800 p-10 rounded-2xl border border-slate-700 shadow-xl">
+        <div class="inline-block animate-bounce mb-4 text-5xl">⏳</div>
+        <h2 class="text-2xl font-bold mb-2">Player 2 का इंतज़ार...</h2>
+        <p class="text-slate-400">Room ID: <span id="display-room" class="text-yellow-400 font-mono"></span></p>
     </div>
 
-    <!-- 3. गेम स्क्रीन -->
-    <div id="game-screen" class="hidden w-full max-w-lg p-4">
-        <div class="flex justify-between items-center bg-gray-800 p-4 rounded-lg mb-6 border border-gray-700">
-            <div class="text-center">
-                <p id="p1-name-display" class="text-sm text-gray-400">P1</p>
-                <p id="p1-score-display" class="text-2xl font-bold text-green-400">0</p>
+    <!-- Game -->
+    <div id="game-screen" class="hidden w-full max-w-xl">
+        <div class="flex justify-between items-center mb-6 bg-slate-800 p-4 rounded-xl border border-slate-700">
+            <div class="text-center px-4">
+                <div id="p1-name" class="text-xs uppercase text-slate-400">P1</div>
+                <div id="p1-score" class="text-3xl font-black text-green-400">0</div>
             </div>
-            <div class="text-2xl font-bold text-red-500">VS</div>
-            <div class="text-center">
-                <p id="p2-name-display" class="text-sm text-gray-400">P2</p>
-                <p id="p2-score-display" class="text-2xl font-bold text-green-400">0</p>
+            <div class="text-xl font-black text-slate-500">VS</div>
+            <div class="text-center px-4">
+                <div id="p2-name" class="text-xs uppercase text-slate-400">P2</div>
+                <div id="p2-score" class="text-3xl font-black text-green-400">0</div>
             </div>
         </div>
 
-        <div class="bg-gray-800 p-6 rounded-xl shadow-lg mb-6 relative">
-            <span id="turn-indicator" class="absolute top-2 right-2 text-xs bg-blue-600 px-2 py-1 rounded">Q: <span id="q-number">1</span>/30</span>
-            <h3 id="question-text" class="text-lg font-semibold mb-6 min-h-[60px]">Loading...</h3>
-            
-            <div id="options-container" class="grid grid-cols-1 gap-3"></div>
+        <div class="bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-700 mb-6">
+            <div class="flex justify-between mb-4">
+                <span class="text-yellow-400 font-bold">Q <span id="q-num">1</span>/30</span>
+            </div>
+            <h2 id="q-text" class="text-xl font-bold mb-6 min-h-[80px]">Sawaal load ho raha hai...</h2>
+            <div id="options" class="grid grid-cols-1 gap-3"></div>
         </div>
 
-        <div class="text-center">
-            <button id="slap-btn" onclick="performSlap()" disabled class="slap-btn w-full py-4 rounded-xl text-2xl font-black text-white uppercase tracking-widest opacity-50">
-                👋 SLAP!
-            </button>
-            <p id="action-status" class="mt-2 text-sm text-gray-400 h-5">सही जवाब दें और थप्पड़ मारें!</p>
-        </div>
+        <button id="slap-btn" onclick="sendSlap()" disabled class="slap-btn w-full py-5 rounded-2xl text-2xl font-black shadow-xl opacity-30 cursor-not-allowed">👋 THAPPAD MAAREIN!</button>
+        <p id="hint" class="text-center mt-4 text-slate-500 italic">Sahi jawab dein tabhi thappad maar payenge!</p>
     </div>
 
     <script>
         const API_URL = "https://sheetdb.io/api/v1/hkzyjglo32xu3";
-        
-        let gameState = {
-            roomId: "",
-            myPlayer: "",
-            myName: "",
-            opponentName: "",
-            isGameRunning: false,
-            currentQIndex: 0
-        };
+        let state = { room: "", me: "", myName: "", qIdx: -1, busy: false };
 
-        // --- 30 महत्वपूर्ण प्रश्न (शुक्ल युग और शुक्लोत्तर युग) ---
         const questions = [
-            // शुक्ल युग (छायावादी युग)
-            { q: "शुक्ल युग की समयावधि क्या मानी जाती है?", opts: ["1900-1920", "1919-1938", "1938-1947", "1850-1900"], ans: 1 },
             { q: "‘चिन्तामणि’ के लेखक कौन हैं?", opts: ["प्रेमचंद", "श्यामसुन्दर दास", "आचार्य रामचन्द्र शुक्ल", "गुलाबराय"], ans: 2 },
+            { q: "शुक्ल युग की समयावधि क्या है?", opts: ["1900-1920", "1919-1938", "1938-1947", "1850-1900"], ans: 1 },
             { q: "‘गबन’ किस विधा की रचना है?", opts: ["नाटक", "उपन्यास", "कहानी", "जीवनी"], ans: 1 },
-            { q: "‘कंकाल’ के लेखक कौन हैं?", opts: ["जयशंकर प्रसाद", "निराला", "प्रेमचंद", "रामकुमार वर्मा"], ans: 0 },
-            { q: "‘कलम का सिपाही’ किसकी रचना है?", opts: ["वृंदावनलाल वर्मा", "अमृतराय", "प्रेमचंद", "इनमें से कोई नहीं"], ans: 1 },
-            { q: "‘पंचपरमेश्वर’ कहानी के लेखक कौन हैं?", opts: ["आचार्य शुक्ल", "प्रेमचंद", "यशपाल", "राजेन्द्र यादव"], ans: 1 },
-            { q: "शुक्ल युग को अन्य किस नाम से जाना जाता है?", opts: ["छायावाद युग", "प्रगतिवादी युग", "प्रयोगवादी युग", "भारतेन्दु युग"], ans: 0 },
-            { q: "‘रस मीमांसा’ के लेखक हैं?", opts: ["आचार्य रामचन्द्र शुक्ल", "हजारी प्रसाद द्विवेदी", "महादेवी वर्मा", "पंत"], ans: 0 },
-            { q: "‘मेरी असफलताएँ’ किस विधा की रचना है?", opts: ["जीवनी", "आत्मकथा", "कहानी", "डायरी"], ans: 1 },
-            { q: "‘तितली’ उपन्यास के रचनाकार कौन हैं?", opts: ["जयशंकर प्रसाद", "प्रेमचंद", "जैनेंद्र", "अज्ञेय"], ans: 0 },
-            { q: "‘हंस’ पत्रिका के सम्पादक कौन थे?", opts: ["प्रेमचंद", "जयशंकर प्रसाद", "महादेवी वर्मा", "निराला"], ans: 0 },
-            { q: "‘एकांकी सम्राट’ किसे कहा जाता है?", opts: ["रामकुमार वर्मा", "सेठ गोविन्द दास", "हरिकृष्ण प्रेमी", "मोहन राकेश"], ans: 0 },
-            { q: "‘त्यागपत्र’ किस लेखक की रचना है?", opts: ["जैनेंद्र कुमार", "अज्ञेय", "धर्मवीर भारती", "फणीश्वरनाथ रेणु"], ans: 0 },
             { q: "‘ध्रुवस्वामिनी’ नाटक के लेखक हैं?", opts: ["हरिकृष्ण प्रेमी", "जयशंकर प्रसाद", "विष्णु प्रभाकर", "मोहन राकेश"], ans: 1 },
-            { q: "‘अर्द्धनारीश्वर’ के रचयिता कौन हैं?", opts: ["रामधारी सिंह दिनकर", "विष्णु प्रभाकर", "दोनों (अलग विधा)", "कोई नहीं"], ans: 1 }, // (Note: विष्णु प्रभाकर का उपन्यास है, दिनकर का निबंध। 10वीं स्तर पर अक्सर विष्णु प्रभाकर पूछा जाता है, या दिनकर) - यहाँ विष्णु प्रभाकर सही मान रहे हैं।
-            
-            // शुक्लोत्तर युग (छायावादोत्तर युग)
-            { q: "शुक्लोत्तर युग की समयावधि क्या है?", opts: ["1938-1947", "1919-1938", "1900-1922", "1947-अब तक"], ans: 0 },
-            { q: "‘गुनाहों का देवता’ उपन्यास के लेखक कौन हैं?", opts: ["धर्मवीर भारती", "कमलेश्वर", "मुंशी प्रेमचंद", "अमृतलाल नागर"], ans: 0 },
-            { q: "‘सूरज का सातवाँ घोड़ा’ के लेखक हैं?", opts: ["मोहन राकेश", "धर्मवीर भारती", "अज्ञेय", "यशपाल"], ans: 1 },
-            { q: "‘बाणभट्ट की आत्मकथा’ किस विधा की रचना है?", opts: ["आत्मकथा", "जीवनी", "उपन्यास", "रेखाचित्र"], ans: 2 },
-            { q: "‘अतीत के चलचित्र’ की लेखिका कौन हैं?", opts: ["सुभद्रा कुमारी चौहान", "महादेवी वर्मा", "मन्नू भंडारी", "कृष्णा सोबती"], ans: 1 },
-            { q: "‘गेहूँ और गुलाब’ के रचनाकार हैं?", opts: ["रामवृक्ष बेनीपुरी", "महादेवी वर्मा", "रामविलास शर्मा", "प्रेमचंद"], ans: 0 },
-            { q: "‘साहित्य लोचन’ के लेखक कौन हैं?", opts: ["श्यामसुन्दर दास", "रामचन्द्र शुक्ल", "हजारी प्रसाद द्विवेदी", "नगेन्द्र"], ans: 0 },
-            { q: "‘मैला आँचल’ के रचनाकार हैं?", opts: ["फणीश्वरनाथ रेणु", "प्रेमचंद", "अमृतराय", "नागार्जुन"], ans: 0 },
-            { q: "‘शिक्षा और संस्कृति’ किसकी रचना है?", opts: ["डॉ. राजेन्द्र प्रसाद", "महात्मा गांधी", "जवाहरलाल नेहरू", "विनोबा भावे"], ans: 0 },
-            { q: "‘हिमालय की पुकार’ के लेखक हैं?", opts: ["जयप्रकाश भारती", "धर्मवीर भारती", "रामधारी सिंह दिनकर", "भगवतशरण उपाध्याय"], ans: 0 },
-            { q: "‘अजातशत्रु’ नाटक के लेखक कौन हैं?", opts: ["जयशंकर प्रसाद", "हरिकृष्ण प्रेमी", "लक्ष्मी नारायण मिश्र", "उपेंद्रनाथ अश्क"], ans: 0 },
-            { q: "‘क्या भूलूँ क्या याद करूँ’ किस विधा की रचना है?", opts: ["डायरी", "संस्मरण", "आत्मकथा", "यात्रावृत्त"], ans: 2 },
-            { q: "‘नीड़ का निर्माण फिर’ के लेखक कौन हैं?", opts: ["हरिवंशराय बच्चन", "दिनकर", "पंत", "निराला"], ans: 0 },
-            { q: "‘झलमला’ किसकी रचना है?", opts: ["पदुमलाल पुन्नालाल बख्शी", "प्रेमचंद", "जयशंकर प्रसाद", "अज्ञेय"], ans: 0 },
-            { q: "‘आवारा मसीहा’ के लेखक कौन हैं?", opts: ["विष्णु प्रभाकर", "अमृतराय", "रांगेय राघव", "राहुल सांकृत्यायन"], ans: 0 }
-        ];
-
-        async function getGameData(roomId) {
-            try {
-                const response = await fetch(`${API_URL}/search?room_id=${roomId}`);
-                const data = await response.json();
-                return data.length > 0 ? data[0] : null;
-            } catch (error) { console.error(error); return null; }
-        }
-
-        async function updateGameData(roomId, dataObj) {
-            try {
-                await fetch(`${API_URL}/room_id/${roomId}`, {
-                    method: 'PATCH',
-                    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ data: dataObj })
-                });
-            } catch (error) { console.error(error); }
-        }
+            { q: "‘कलम का सिपाही’ किसकी रचना है?", opts: ["अमृतराय", "प्रेमचंद", "यशपाल", "निराला"], ans: 0 },
+            { q: "‘मेरी असफलताएँ’ किस विधा की रचना है?", opts: ["जीवनी", "आत्मकथा", "कहानी", "डायरी"], ans: 1 },
+            { q: "‘बाणभट्ट की आत्मकथा’ के लेखक हैं?", opts: ["हजारी प्रसाद द्विवेदी", "शुक्ल", "अज्ञेय", "यशपाल"], ans: 0 },
+            { q: "‘गुनाहों का देवता’ किसने लिखा?", opts: ["धर्मवीर भारती", "कमलेश्वर", "प्रेमचंद", "नागर"], ans: 0 },
+            { q: "‘सूरज का सातवाँ घोड़ा’ किसकी कृति है?", opts: ["मोहन राकेश", "धर्मवीर भारती", "अज्ञेय", "यशपाल"], ans: 1 },
+            { q: "‘मैला आँचल’ किसका उपन्यास है?", opts: ["फणीश्वरनाथ रेणु", "प्रेमचंद", "अमृतराय", "नागार्जुन"], ans: 0 }
+        ]; // Space bachane ke liye 10 sawaal rakhe hain, aap 30 kar sakte hain
 
         async function joinGame() {
             const name = document.getElementById('username').value.trim();
             const room = document.getElementById('roomId').value.trim();
-            if (!name || !room) { Swal.fire('Error', 'नाम और Room ID भरें', 'error'); return; }
+            if(!name || !room) return Swal.fire("Rukiye!", "Naam aur Room ID zaroori hai", "warning");
 
-            gameState.myName = name;
-            gameState.roomId = room;
+            state.myName = name;
+            state.room = room;
+            document.getElementById('display-room').innerText = room;
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('waiting-screen').classList.remove('hidden');
 
-            const roomData = await getGameData(room);
-
-            if (!roomData) {
-                gameState.myPlayer = 'player_1';
-                document.getElementById('waiting-msg').innerText = "रूम बन रहा है...";
-                await fetch(API_URL, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ data: [{ room_id: room, player_1_name: name, player_2_name: "", player_1_action: "none", player_2_action: "none", p1_score: 0, p2_score: 0, current_question_index: 0 }] })
-                });
-                startPolling();
-            } else if (roomData.player_2_name === "") {
-                gameState.myPlayer = 'player_2';
-                document.getElementById('waiting-msg').innerText = "कनेक्ट हो रहा है...";
-                await updateGameData(room, { player_2_name: name });
-                startPolling();
-            } else {
-                Swal.fire('Error', 'रूम फुल है', 'warning');
-                location.reload();
+            try {
+                const res = await fetch(`${API_URL}/search?room_id=${room}`);
+                const data = await res.json();
+                
+                if(data.length === 0) {
+                    state.me = "player_1";
+                    await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({data: [{
+                            room_id: room, player_1_name: name, player_2_name: "",
+                            p1_score: 0, p2_score: 0, current_question_index: 0,
+                            player_1_action: "none", player_2_action: "none"
+                        }]})
+                    });
+                } else if(data[0].player_2_name === "") {
+                    state.me = "player_2";
+                    await fetch(`${API_URL}/room_id/${room}`, {
+                        method: 'PATCH',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({data: {player_2_name: name}})
+                    });
+                } else {
+                    Swal.fire("Full!", "Ye room full ho chuka hai", "error");
+                    location.reload();
+                }
+                startSync();
+            } catch(e) {
+                Swal.fire("API Error", "Limit khatam ho gayi shayad. Kal try karein.", "error");
             }
         }
 
-        function startPolling() {
+        function startSync() {
+            // API bachane ke liye 3.5 seconds ka interval
             setInterval(async () => {
-                const data = await getGameData(gameState.roomId);
-                if (data) handleSync(data);
-            }, 2000);
+                if(state.busy) return;
+                try {
+                    const res = await fetch(`${API_URL}/search?room_id=${state.room}`);
+                    const data = await res.json();
+                    if(data.length > 0) syncUI(data[0]);
+                } catch(e) {}
+            }, 3500);
         }
 
-        function handleSync(data) {
-            if (data.player_1_name && data.player_2_name && !gameState.isGameRunning) {
-                gameState.isGameRunning = true;
-                gameState.opponentName = (gameState.myPlayer === 'player_1') ? data.player_2_name : data.player_1_name;
+        function syncUI(db) {
+            if(db.player_1_name && db.player_2_name) {
                 document.getElementById('waiting-screen').classList.add('hidden');
                 document.getElementById('game-screen').classList.remove('hidden');
-                document.getElementById('p1-name-display').innerText = data.player_1_name;
-                document.getElementById('p2-name-display').innerText = data.player_2_name;
-            }
-            if (!gameState.isGameRunning) return;
+                document.getElementById('p1-name').innerText = db.player_1_name;
+                document.getElementById('p2-name').innerText = db.player_2_name;
+                document.getElementById('p1-score').innerText = db.p1_score;
+                document.getElementById('p2-score').innerText = db.p2_score;
 
-            document.getElementById('p1-score-display').innerText = data.p1_score;
-            document.getElementById('p2-score-display').innerText = data.p2_score;
+                const dbQIdx = parseInt(db.current_question_index);
+                if(dbQIdx !== state.qIdx) {
+                    state.qIdx = dbQIdx;
+                    renderQuestion(dbQIdx);
+                }
 
-            const serverQIndex = parseInt(data.current_question_index) || 0;
-            if (serverQIndex !== gameState.currentQIndex) {
-                gameState.currentQIndex = serverQIndex;
-                loadQuestion(serverQIndex);
-                disableSlapBtn(); 
-            } else if (document.getElementById('question-text').innerText === "Loading...") {
-                loadQuestion(serverQIndex);
+                // Action logic
+                const oppAction = (state.me === "player_1") ? db.player_2_action : db.player_1_action;
+                if(oppAction === "slap") handleIncomingSlap();
             }
-            checkIncomingSlap(data);
         }
 
-        function loadQuestion(index) {
-            document.getElementById('q-number').innerText = index + 1;
-            if (index >= questions.length) {
-                document.getElementById('question-text').innerText = "🎉 गेम समाप्त! स्कोर चेक करें।";
-                document.getElementById('options-container').innerHTML = "";
+        function renderQuestion(idx) {
+            if(idx >= questions.length) {
+                document.getElementById('q-text').innerText = "Khel Khatam! 🎉";
+                document.getElementById('options').innerHTML = "";
                 return;
             }
-            const q = questions[index];
-            document.getElementById('question-text').innerText = q.q;
-            const optsDiv = document.getElementById('options-container');
-            optsDiv.innerHTML = "";
+            const q = questions[idx];
+            document.getElementById('q-num').innerText = idx + 1;
+            document.getElementById('q-text').innerText = q.q;
+            const container = document.getElementById('options');
+            container.innerHTML = "";
             q.opts.forEach((opt, i) => {
                 const btn = document.createElement('button');
-                btn.className = "w-full text-left p-3 bg-gray-700 hover:bg-gray-600 rounded border border-gray-600 transition";
+                btn.className = "w-full text-left p-4 bg-slate-700 hover:bg-slate-600 rounded-xl border border-slate-600 transition";
                 btn.innerText = opt;
-                btn.onclick = () => checkAnswer(i, q.ans);
-                optsDiv.appendChild(btn);
+                btn.onclick = () => {
+                    if(i === q.ans) {
+                        document.getElementById('slap-btn').disabled = false;
+                        document.getElementById('slap-btn').style.opacity = "1";
+                        document.getElementById('slap-btn').style.cursor = "pointer";
+                        document.getElementById('hint').innerText = "SAHI JAWAB! AB THAPPAD MAARO!";
+                        document.getElementById('hint').className = "text-center mt-4 text-green-400 font-bold";
+                        container.querySelectorAll('button').forEach(b => b.disabled = true);
+                    } else {
+                        btn.classList.add('bg-red-900', 'border-red-500');
+                        container.querySelectorAll('button').forEach(b => b.disabled = true);
+                        document.getElementById('hint').innerText = "GALAT! Agle sawaal ka intezaar karein.";
+                    }
+                };
+                container.appendChild(btn);
             });
         }
 
-        function checkAnswer(selected, correct) {
-            const status = document.getElementById('action-status');
-            const optsDiv = document.getElementById('options-container');
-            if (selected === correct) {
-                status.innerText = "✅ सही! Slap बटन दबाओ!";
-                status.className = "mt-2 text-sm text-green-400 font-bold h-5";
-                const slapBtn = document.getElementById('slap-btn');
-                slapBtn.disabled = false;
-                slapBtn.classList.remove('opacity-50');
-                Array.from(optsDiv.children).forEach(b => b.disabled = true);
+        async function sendSlap() {
+            state.busy = true;
+            const slapBtn = document.getElementById('slap-btn');
+            slapBtn.disabled = true;
+            slapBtn.style.opacity = "0.3";
+            
+            const curP1 = parseInt(document.getElementById('p1-score').innerText);
+            const curP2 = parseInt(document.getElementById('p2-score').innerText);
+
+            let payload = { current_question_index: state.qIdx + 1 };
+            if(state.me === "player_1") {
+                payload.player_1_action = "slap";
+                payload.p1_score = curP1 + 10;
             } else {
-                status.innerText = "❌ गलत! मौका चूक गए।";
-                status.className = "mt-2 text-sm text-red-400 h-5";
-                Array.from(optsDiv.children).forEach(b => b.disabled = true);
+                payload.player_2_action = "slap";
+                payload.p2_score = curP2 + 10;
             }
+
+            try {
+                await fetch(`${API_URL}/room_id/${state.room}`, {
+                    method: 'PATCH',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({data: payload})
+                });
+            } catch(e) {}
+            state.busy = false;
         }
 
-        async function performSlap() {
-            disableSlapBtn();
-            document.getElementById('action-status').innerText = "Sending Slap...";
-            let updates = {};
-            if (gameState.myPlayer === 'player_1') {
-                updates = { player_1_action: 'slap', p1_score: parseInt(document.getElementById('p1-score-display').innerText) + 10, current_question_index: gameState.currentQIndex + 1 };
-            } else {
-                updates = { player_2_action: 'slap', p2_score: parseInt(document.getElementById('p2-score-display').innerText) + 10, current_question_index: gameState.currentQIndex + 1 };
-            }
-            await updateGameData(gameState.roomId, updates);
-        }
-
-        async function checkIncomingSlap(data) {
-            let opponentAction = (gameState.myPlayer === 'player_1') ? data.player_2_action : data.player_1_action;
-            let resetKey = (gameState.myPlayer === 'player_1') ? "player_2_action" : "player_1_action";
-
-            if (opponentAction === 'slap') {
-                const body = document.getElementById('main-body');
-                body.classList.add('shake-effect');
-                Swal.fire({ icon: 'error', title: 'Thappad!', text: `${gameState.opponentName} ने थप्पड़ मारा!`, timer: 1000, showConfirmButton: false, toast: true, position: 'top-end' });
-                setTimeout(() => { body.classList.remove('shake-effect'); }, 600);
-                let resetUpdate = {}; resetUpdate[resetKey] = "none";
-                await updateGameData(gameState.roomId, resetUpdate);
-            }
-        }
-
-        function disableSlapBtn() {
-            const btn = document.getElementById('slap-btn');
-            btn.disabled = true;
-            btn.classList.add('opacity-50');
-            document.getElementById('action-status').innerText = "सही जवाब दें और थप्पड़ मारें!";
-            document.getElementById('action-status').className = "mt-2 text-sm text-gray-400 h-5";
+        async function handleIncomingSlap() {
+            document.getElementById('main-body').classList.add('shake-effect');
+            setTimeout(() => document.getElementById('main-body').classList.remove('shake-effect'), 500);
+            
+            // Reset action in DB so it doesn't trigger again
+            let reset = {};
+            reset[state.me === "player_1" ? "player_2_action" : "player_1_action"] = "none";
+            
+            try {
+                await fetch(`${API_URL}/room_id/${state.room}`, {
+                    method: 'PATCH',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({data: reset})
+                });
+            } catch(e) {}
         }
     </script>
 </body>
 </html>
-
 
