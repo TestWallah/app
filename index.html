@@ -1,19 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Ultimate 3D Subway Racer</title>
+    <title>Ultimate 4K Street Racer</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap');
 
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #1a1a1a;
-            font-family: 'Orbitron', sans-serif;
-            touch-action: none;
-            user-select: none;
+            font-family: 'Montserrat', sans-serif;
+            background: #000;
         }
 
         #game-container {
@@ -22,719 +20,392 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 1;
         }
 
-        /* UI LAYER */
+        /* --- MODERN GLASS UI --- */
         #ui-layer {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 10;
             pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            z-index: 10;
         }
 
-        .hud-header {
+        .hud {
             display: flex;
             justify-content: space-between;
-            padding: 25px;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+            padding: 30px;
         }
 
-        .hud-stat {
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            padding: 15px 30px;
+            border-radius: 20px;
             color: #fff;
-            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
-            transform: skew(-10deg);
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            min-width: 120px;
         }
 
-        .hud-label {
-            font-size: 14px;
-            color: #aaa;
+        .stat-label {
+            font-size: 12px;
             letter-spacing: 2px;
+            opacity: 0.8;
             display: block;
         }
 
-        .hud-value {
-            font-size: 32px;
+        .stat-value {
+            font-size: 28px;
             font-weight: 900;
-            color: #00ffff;
         }
 
-        .coin-value {
-            color: #ffd700;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
-        }
-
-        /* NITRO BAR */
-        .nitro-container {
-            position: absolute;
-            right: 20px;
-            bottom: 30%;
-            width: 15px;
-            height: 200px;
-            background: rgba(0,0,0,0.5);
-            border: 2px solid #fff;
-            border-radius: 10px;
-            overflow: hidden;
-            display: none; /* Show only when active */
-        }
-
-        .nitro-fill {
-            width: 100%;
-            height: 0%;
-            background: linear-gradient(to top, #ff0000, #ffff00);
-            position: absolute;
-            bottom: 0;
-            transition: height 0.1s linear;
-        }
-
-        /* SCREENS */
+        /* --- MENU SCREENS --- */
         .screen {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(5px);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            background: radial-gradient(circle, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.8) 100%);
             z-index: 20;
-            pointer-events: auto;
-            transition: opacity 0.4s ease;
+            transition: opacity 0.5s;
         }
 
-        .hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
+        .hidden { opacity: 0; pointer-events: none; }
 
         h1 {
-            font-size: 5rem;
-            color: transparent;
-            -webkit-text-stroke: 2px #00ffff;
-            background: linear-gradient(90deg, #00ffff, #ff00ff);
-            -webkit-background-clip: text;
-            background-clip: text;
-            margin: 0;
-            text-transform: uppercase;
-            font-style: italic;
-            text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
-            animation: glow 2s infinite alternate;
+            font-size: 70px;
+            color: #fff;
+            text-shadow: 0 0 20px #00ffff;
+            margin-bottom: 30px;
+            letter-spacing: 5px;
             text-align: center;
         }
 
-        .btn-play {
-            margin-top: 40px;
-            padding: 20px 60px;
-            font-size: 24px;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: bold;
-            color: #000;
-            background: #00ffff;
+        .play-btn {
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
             border: none;
-            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+            padding: 20px 60px;
+            color: #fff;
+            font-size: 24px;
+            font-weight: 900;
+            border-radius: 50px;
             cursor: pointer;
-            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(79, 172, 254, 0.5);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 15px 40px rgba(79, 172, 254, 0.7);
+        }
+
+        #boost-gauge {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 250px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            display: none;
+            overflow: hidden;
+        }
+
+        #boost-fill {
+            height: 100%;
+            width: 100%;
+            background: #00ffff;
             box-shadow: 0 0 20px #00ffff;
         }
 
-        .btn-play:hover {
-            background: #fff;
-            transform: scale(1.1);
-            box-shadow: 0 0 40px #00ffff;
-        }
-
-        .controls-hint {
-            margin-top: 30px;
-            color: #888;
-            font-size: 14px;
-            text-align: center;
-        }
-
-        .key {
-            border: 1px solid #555;
-            padding: 5px 10px;
-            border-radius: 5px;
-            background: #222;
-            color: #fff;
-            margin: 0 5px;
-        }
-
-        /* FX OVERLAYS */
-        #speed-lines {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, transparent 50%, rgba(255, 255, 255, 0.1) 90%);
-            z-index: 5;
-            opacity: 0;
-            transition: opacity 0.5s;
-            pointer-events: none;
-        }
-
-        #flash-white {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: white;
-            z-index: 100;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.5s;
-        }
-
-        @keyframes glow {
-            from { text-shadow: 0 0 20px #00ffff; }
-            to { text-shadow: 0 0 40px #ff00ff; }
-        }
-
-        @media (max-width: 600px) {
-            h1 { font-size: 3rem; }
-            .btn-play { padding: 15px 40px; font-size: 18px; }
-        }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
 </head>
 <body>
 
-    <!-- VISUALS -->
     <div id="game-container"></div>
-    <div id="speed-lines"></div>
-    <div id="flash-white"></div>
 
-    <!-- UI -->
     <div id="ui-layer">
-        <div class="hud-header">
-            <div class="hud-stat">
-                <span class="hud-label">SCORE</span>
-                <span class="hud-value" id="score-display">0</span>
+        <div class="hud">
+            <div class="stat-card">
+                <span class="stat-label">SCORE</span>
+                <span class="stat-value" id="score-text">0</span>
             </div>
-            <div class="hud-stat" style="text-align: right;">
-                <span class="hud-label">BEST</span>
-                <span class="hud-value coin-value" id="best-display">0</span>
+            <div class="stat-card">
+                <span class="stat-label">HIGH SCORE</span>
+                <span class="stat-value" id="high-score-text" style="color: #ffd700;">0</span>
             </div>
         </div>
-        <div class="nitro-container" id="nitro-bar">
-            <div class="nitro-fill" id="nitro-fill"></div>
-        </div>
+        <div id="boost-gauge"><div id="boost-fill"></div></div>
     </div>
 
-    <!-- START SCREEN -->
     <div id="start-screen" class="screen">
-        <h1>NEON<br>RACER 3D</h1>
-        <p style="color:#fff; letter-spacing: 3px; margin-top: -10px;">SUBWAY EDITION</p>
-        <button class="btn-play" onclick="startGame()">START ENGINE</button>
-        <div class="controls-hint">
-            <span class="desktop-only">Use <span class="key">←</span> <span class="key">→</span> to Drive</span>
-            <span class="mobile-only" style="display:none;">Swipe Left/Right to Drive</span>
-        </div>
+        <h1>STREET<br>KING 4K</h1>
+        <button class="play-btn" onclick="initGame()">RACE START</button>
+        <p style="color: #fff; margin-top: 20px; opacity: 0.6;">Swipe Left/Right to Control</p>
     </div>
 
-    <!-- GAME OVER SCREEN -->
     <div id="game-over-screen" class="screen hidden">
-        <h1 style="font-size: 4rem; color: #ff3333; -webkit-text-stroke: 2px #ff0000;">CRASHED!</h1>
-        <div class="hud-stat" style="text-align: center; margin: 20px;">
-            <span class="hud-label">FINAL SCORE</span>
-            <span class="hud-value" id="final-score">0</span>
+        <h1 style="color: #ff4757;">WASTED!</h1>
+        <div class="stat-card" style="margin-bottom: 20px;">
+            <span class="stat-label">FINAL SCORE</span>
+            <span class="stat-value" id="final-score">0</span>
         </div>
-        <button class="btn-play" onclick="resetGame()">RACE AGAIN</button>
+        <button class="play-btn" onclick="initGame()">RETRY</button>
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <script>
-        // --- ASSETS CONFIG ---
-        const ASSETS = {
-            player: 'https://i.ibb.co/TDcsqmxX/1000-F-69908284-1zs-Id-LG3r-Wjy-BYj9-Hiu6l-Ao99-KYc-ZVOR-removebg-preview.png',
-            enemy: 'https://i.ibb.co/CpZnCNCq/car-front-view-flat-illustration-white-background-947007-28148-removebg-preview.png',
-            coin: 'https://i.ibb.co/d3LvkB1/file-00000000d2987206bd36045dca44abee.png',
-            boost: 'https://i.ibb.co/GQfHFX7z/file-0000000062c872069f12dac731f7b6fb.png'
-        };
+        // --- ASSETS ---
+        const PLAYER_URL = 'https://i.ibb.co/TDcsqmxX/1000-F-69908284-1zs-Id-LG3r-Wjy-BYj9-Hiu6l-Ao99-KYc-ZVOR-removebg-preview.png';
+        const ENEMY_URL = 'https://i.ibb.co/CpZnCNCq/car-front-view-flat-illustration-white-background-947007-28148-removebg-preview.png';
+        const COIN_URL = 'https://i.ibb.co/d3LvkB1/file-00000000d2987206bd36045dca44abee.png';
+        const BOOST_URL = 'https://i.ibb.co/GQfHFX7z/file-0000000062c872069f12dac731f7b6fb.png';
 
-        // --- GLOBAL VARIABLES ---
-        let scene, camera, renderer;
-        let playerCar, roadGroup;
-        let particles = [];
+        // --- VARS ---
+        let scene, camera, renderer, player;
         let gameActive = false;
-        let score = 0;
-        let highScore = localStorage.getItem('neonRacerHigh') || 0;
-        let gameSpeed = 0.8;
-        let baseSpeed = 0.8;
-        let boostTime = 0;
-        let laneIndex = 1; // 0=Left, 1=Center, 2=Right
-        const LANE_WIDTH = 4.5;
-        
-        // Object Pools
-        let enemies = [];
-        let coins = [];
-        let props = [];
-        let roadStripes = [];
+        let score = 0, highScore = localStorage.getItem('4kRacerHigh') || 0;
+        let speed = 0.8, baseSpeed = 0.8;
+        let lane = 1, targetX = 0;
+        let boostLeft = 0;
+        let gameObjects = [], scenery = [];
+        const LANES = [-4, 0, 4];
 
-        // Animation Frames
-        let frameId;
+        document.getElementById('high-score-text').innerText = highScore;
 
-        // Init High Score
-        document.getElementById('best-display').innerText = highScore;
-
-        // Mobile Check
-        if (/Mobi|Android/i.test(navigator.userAgent)) {
-            document.querySelector('.mobile-only').style.display = 'inline';
-            document.querySelector('.desktop-only').style.display = 'none';
-        }
-
-        // --- INITIALIZATION ---
-        function init() {
-            // Scene
+        function initScene() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x050510);
-            scene.fog = new THREE.FogExp2(0x050510, 0.015);
+            scene.background = new THREE.Color(0x13132e); // Deep Midnight Blue
+            scene.fog = new THREE.FogExp2(0x13132e, 0.012);
 
-            // Camera
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 200);
-            camera.position.set(0, 5, 10);
-            camera.lookAt(0, 0, -10);
+            camera = new THREE.PerspectiveCamera(65, window.innerWidth/window.innerHeight, 0.1, 250);
+            camera.position.set(0, 6, 12);
+            camera.lookAt(0, 2, -10);
 
-            // Renderer
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.setPixelRatio(window.devicePixelRatio); // 4K resolution support
             document.getElementById('game-container').appendChild(renderer.domElement);
 
             // Lighting
-            const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
-            scene.add(hemiLight);
+            const ambient = new THREE.AmbientLight(0xffffff, 0.9);
+            scene.add(ambient);
 
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            dirLight.position.set(10, 20, 10);
-            dirLight.castShadow = true;
-            dirLight.shadow.mapSize.width = 1024;
-            dirLight.shadow.mapSize.height = 1024;
-            scene.add(dirLight);
+            const sun = new THREE.PointLight(0x00f2fe, 1, 100);
+            sun.position.set(0, 10, 0);
+            scene.add(sun);
 
-            // Environment Light (Neon Glow)
-            const pointLight = new THREE.PointLight(0x00ffff, 0.5, 20);
-            pointLight.position.set(0, 5, -5);
-            scene.add(pointLight);
-
-            createWorld();
             createPlayer();
+            createEnvironment();
             
-            // Events
+            // Interaction
             window.addEventListener('resize', onResize);
-            document.addEventListener('keydown', onKeyDown);
-            initTouch();
-
-            // Initial Render
-            renderer.render(scene, camera);
-        }
-
-        // --- WORLD GENERATION ---
-        function createWorld() {
-            // Road
-            const roadGeo = new THREE.PlaneGeometry(30, 400);
-            const roadMat = new THREE.MeshStandardMaterial({ 
-                color: 0x1a1a1a, 
-                roughness: 0.8,
-                metalness: 0.2
-            });
-            const road = new THREE.Mesh(roadGeo, roadMat);
-            road.rotation.x = -Math.PI / 2;
-            road.position.z = -150;
-            road.receiveShadow = true;
-            scene.add(road);
-
-            // Side Grass / Terrain
-            const terrainGeo = new THREE.PlaneGeometry(300, 400);
-            const terrainMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0a });
-            const terrain = new THREE.Mesh(terrainGeo, terrainMat);
-            terrain.rotation.x = -Math.PI / 2;
-            terrain.position.y = -0.1;
-            terrain.position.z = -150;
-            scene.add(terrain);
-
-            // Moving Road Stripes (For speed illusion)
-            const stripeGeo = new THREE.PlaneGeometry(0.5, 6);
-            const stripeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            setupControls();
             
-            for(let i=0; i<20; i++) {
-                // Left Line
-                let s1 = new THREE.Mesh(stripeGeo, stripeMat);
-                s1.rotation.x = -Math.PI / 2;
-                s1.position.set(-LANE_WIDTH/2, 0.05, -i * 15);
-                scene.add(s1);
-                roadStripes.push(s1);
-
-                // Right Line
-                let s2 = new THREE.Mesh(stripeGeo, stripeMat);
-                s2.rotation.x = -Math.PI / 2;
-                s2.position.set(LANE_WIDTH/2, 0.05, -i * 15);
-                scene.add(s2);
-                roadStripes.push(s2);
-            }
+            animate();
         }
 
         function createPlayer() {
-            const texLoader = new THREE.TextureLoader();
-            const carTex = texLoader.load(ASSETS.player);
-            
-            // Using a Group to handle tilt separately from position
-            playerCar = new THREE.Group();
-
-            // Car Body (Sprite-like plane but with shadow volume)
-            // We use a BoxGeometry scaled thin to catch shadows, but textured on top?
-            // Better: A Plane for visual, an invisible box for shadow casting?
-            // Let's stick to the Plane for the requested PNG look, but enhanced.
-            
-            const carGeo = new THREE.PlaneGeometry(3, 3);
-            const carMat = new THREE.MeshStandardMaterial({ 
-                map: carTex, 
-                transparent: true, 
-                side: THREE.DoubleSide,
-                alphaTest: 0.5 
-            });
-            const carMesh = new THREE.Mesh(carGeo, carMat);
-            carMesh.position.y = 1.5;
-            // Tilt it slightly back so it looks 3D-ish from top camera
-            carMesh.rotation.x = -0.3; 
-            carMesh.castShadow = true; // Shadows are tricky with transparent planes, but let's try
-            carMesh.customDepthMaterial = new THREE.MeshDepthMaterial({
-                depthPacking: THREE.RGBADepthPacking,
-                map: carTex,
-                alphaTest: 0.5
-            });
-
-            playerCar.add(carMesh);
-
-            // Add Car Shadow (Fake Blob)
-            const shadowGeo = new THREE.CircleGeometry(1.2, 32);
-            const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.6 });
-            const shadow = new THREE.Mesh(shadowGeo, shadowMat);
-            shadow.rotation.x = -Math.PI / 2;
-            shadow.position.y = 0.1;
-            playerCar.add(shadow);
-
-            scene.add(playerCar);
+            const tex = new THREE.TextureLoader().load(PLAYER_URL);
+            const geo = new THREE.PlaneGeometry(3.5, 3.5);
+            const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
+            player = new THREE.Mesh(geo, mat);
+            player.position.set(0, 1.7, 0);
+            player.rotation.x = -0.15;
+            scene.add(player);
         }
 
-        // --- GAMEPLAY FUNCTIONS ---
-        function startGame() {
+        function createEnvironment() {
+            // High-Qual Road
+            const roadGeo = new THREE.PlaneGeometry(16, 1000);
+            const roadMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
+            const road = new THREE.Mesh(roadGeo, roadMat);
+            road.rotation.x = -Math.PI/2;
+            road.position.z = -400;
+            scene.add(road);
+
+            // Sidewalk Neon Lines
+            const lineGeo = new THREE.PlaneGeometry(0.2, 1000);
+            const lineMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+            const lineL = new THREE.Mesh(lineGeo, lineMat);
+            lineL.rotation.x = -Math.PI/2;
+            lineL.position.set(-8, 0.05, -400);
+            scene.add(lineL);
+            
+            const lineR = lineL.clone();
+            lineR.position.x = 8;
+            scene.add(lineR);
+        }
+
+        function spawnObject() {
+            if(!gameActive) return;
+            const r = Math.random();
+            const laneIdx = Math.floor(Math.random()*3);
+            const x = LANES[laneIdx];
+            let obj;
+
+            if(r < 0.6) { // Enemy Car
+                const tex = new THREE.TextureLoader().load(ENEMY_URL);
+                obj = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 3.2), new THREE.MeshBasicMaterial({map: tex, transparent:true}));
+                obj.userData = { type: 'enemy', lane: laneIdx };
+                obj.position.set(x, 1.6, -120);
+            } else if(r < 0.9) { // Coin
+                const tex = new THREE.TextureLoader().load(COIN_URL);
+                obj = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 2.2), new THREE.MeshBasicMaterial({map: tex, transparent:true}));
+                obj.userData = { type: 'coin', lane: laneIdx };
+                obj.position.set(x, 2, -120);
+            } else { // Boost
+                const tex = new THREE.TextureLoader().load(BOOST_URL);
+                obj = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 2.5), new THREE.MeshBasicMaterial({map: tex, transparent:true}));
+                obj.userData = { type: 'boost', lane: laneIdx };
+                obj.position.set(x, 2, -120);
+            }
+            scene.add(obj);
+            gameObjects.push(obj);
+        }
+
+        function spawnScenery() {
+            const h = Math.random()*20 + 10;
+            const geo = new THREE.BoxGeometry(5, h, 5);
+            const colors = [0x1e272e, 0x485460, 0x05c46b, 0xff3f34, 0x3c40c6];
+            const mat = new THREE.MeshStandardMaterial({color: colors[Math.floor(Math.random()*colors.length)]});
+            const building = new THREE.Mesh(geo, mat);
+            const side = Math.random() > 0.5 ? 1 : -1;
+            building.position.set(side * 15, h/2, -150);
+            scene.add(building);
+            scenery.push(building);
+        }
+
+        function initGame() {
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('game-over-screen').classList.add('hidden');
             
-            gameActive = true;
+            // Clean up
+            gameObjects.forEach(o => scene.remove(o));
+            scenery.forEach(s => scene.remove(s));
+            gameObjects = []; scenery = [];
+            
             score = 0;
-            boostTime = 0;
-            gameSpeed = baseSpeed;
-            laneIndex = 1;
-            
-            // Reset Player
-            playerCar.position.x = 0;
-            playerCar.rotation.z = 0;
-
-            // Clear Objects
-            clearObjects(enemies);
-            clearObjects(coins);
-            clearObjects(props);
-            
-            // Start Loop
-            lastTime = performance.now();
-            update();
+            baseSpeed = 1.0;
+            lane = 1;
+            gameActive = true;
         }
 
-        function clearObjects(arr) {
-            arr.forEach(obj => scene.remove(obj.mesh));
-            arr.length = 0;
-        }
-
-        function resetGame() {
-            // Just restart
-            startGame();
-        }
-
-        function spawnEnemy() {
-            const lane = Math.floor(Math.random() * 3);
-            const xPos = (lane - 1) * LANE_WIDTH;
-            
-            const tex = new THREE.TextureLoader().load(ASSETS.enemy);
-            const geo = new THREE.PlaneGeometry(3.5, 3.5);
-            const mat = new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.5 });
-            const mesh = new THREE.Mesh(geo, mat);
-            
-            mesh.position.set(xPos, 1.8, -100);
-            mesh.rotation.x = -0.2;
-            
-            scene.add(mesh);
-            enemies.push({ mesh: mesh, lane: lane, active: true });
-        }
-
-        function spawnCoin() {
-            const lane = Math.floor(Math.random() * 3);
-            const xPos = (lane - 1) * LANE_WIDTH;
-
-            const tex = new THREE.TextureLoader().load(ASSETS.coin);
-            // HUGE COIN Geometry
-            const geo = new THREE.CylinderGeometry(1.5, 1.5, 0.2, 32);
-            // Rotate texture for cylinder cap
-            tex.rotation = Math.PI / 2;
-            tex.center.set(0.5, 0.5);
-            
-            const matSides = new THREE.MeshStandardMaterial({ color: 0xFFD700, metalness: 1, roughness: 0.3 });
-            const matFace = new THREE.MeshStandardMaterial({ map: tex, color: 0xFFFFFF });
-            
-            // Array of materials: side, top, bottom
-            const mesh = new THREE.Mesh(geo, [matSides, matFace, matFace]);
-            
-            mesh.position.set(xPos, 1.5, -100);
-            mesh.rotation.x = Math.PI / 2; // Face camera initially
-            mesh.rotation.z = Math.PI / 2; // Upright like a wheel
-
-            scene.add(mesh);
-            coins.push({ mesh: mesh, type: 'coin', active: true });
-        }
-
-        function spawnBoost() {
-            const lane = Math.floor(Math.random() * 3);
-            const xPos = (lane - 1) * LANE_WIDTH;
-
-            const tex = new THREE.TextureLoader().load(ASSETS.boost);
-            const geo = new THREE.BoxGeometry(1.5, 1.5, 1.5);
-            const mat = new THREE.MeshStandardMaterial({ map: tex, transparent: true });
-            const mesh = new THREE.Mesh(geo, mat);
-            
-            mesh.position.set(xPos, 1.5, -100);
-            
-            scene.add(mesh);
-            coins.push({ mesh: mesh, type: 'boost', active: true });
-        }
-
-        function spawnBuilding() {
-            // Neon Buildings
-            const width = Math.random() * 5 + 5;
-            const height = Math.random() * 15 + 10;
-            const depth = Math.random() * 5 + 5;
-            
-            const geo = new THREE.BoxGeometry(width, height, depth);
-            const color = new THREE.Color().setHSL(Math.random(), 0.8, 0.5);
-            const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.2 });
-            const mesh = new THREE.Mesh(geo, mat);
-            
-            // Left or Right side
-            const side = Math.random() > 0.5 ? 1 : -1;
-            const xPos = side * (15 + Math.random() * 10);
-            
-            mesh.position.set(xPos, height/2, -120);
-            scene.add(mesh);
-            props.push({ mesh: mesh });
-        }
-
-        // --- PARTICLE SYSTEM ---
-        function createParticles(x, y, z, color) {
-            for(let i=0; i<5; i++) {
-                const geo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
-                const mat = new THREE.MeshBasicMaterial({ color: color });
-                const mesh = new THREE.Mesh(geo, mat);
-                mesh.position.set(x + (Math.random()-0.5), y, z);
-                scene.add(mesh);
-                particles.push({ mesh: mesh, life: 1.0, vel: {x: (Math.random()-0.5)*0.1, y: Math.random()*0.1, z: 0.2} });
-            }
-        }
-
-        // --- UPDATE LOOP ---
-        let lastTime = 0;
-        let spawnTimer = 0;
-        let envTimer = 0;
-
-        function update() {
+        let spawnClock = 0;
+        function animate() {
+            requestAnimationFrame(animate);
             if(!gameActive) return;
-            frameId = requestAnimationFrame(update);
 
-            const now = performance.now();
-            const dt = Math.min((now - lastTime) / 1000, 0.1); // Limit dt
-            lastTime = now;
+            // Physics & Smooth Lane Change
+            targetX = LANES[lane];
+            player.position.x += (targetX - player.position.x) * 0.15;
+            player.rotation.z = (player.position.x - targetX) * -0.1; // Body Roll
 
-            // Difficulty Curve
-            baseSpeed += 0.0001;
+            // Boost logic
             let currentSpeed = baseSpeed;
-            if (boostTime > 0) {
-                currentSpeed *= 2.0;
-                boostTime -= dt;
-                // UI Update
-                document.getElementById('nitro-bar').style.display = 'block';
-                document.getElementById('nitro-fill').style.height = (boostTime / 3 * 100) + '%';
-                // Effects
-                document.getElementById('speed-lines').style.opacity = 0.8;
-                
-                // Shake Camera
-                camera.position.x += (Math.random() - 0.5) * 0.1;
-                camera.position.y = 5 + (Math.random() - 0.5) * 0.1;
+            if(boostLeft > 0) {
+                boostLeft--;
+                currentSpeed *= 1.8;
+                camera.fov += (75 - camera.fov) * 0.1;
+                document.getElementById('boost-gauge').style.display = 'block';
+                document.getElementById('boost-fill').style.width = (boostLeft/200)*100 + '%';
             } else {
-                document.getElementById('nitro-bar').style.display = 'none';
-                document.getElementById('speed-lines').style.opacity = 0;
-                // Restore Camera
-                camera.position.y += (5 - camera.position.y) * 0.1;
-                camera.position.x += (0 - camera.position.x) * 0.1;
+                camera.fov += (65 - camera.fov) * 0.1;
+                document.getElementById('boost-gauge').style.display = 'none';
             }
+            camera.updateProjectionMatrix();
 
-            // Score
-            score += currentSpeed * 10 * dt;
-            document.getElementById('score-display').innerText = Math.floor(score);
+            // World movement
+            score += currentSpeed;
+            document.getElementById('score-text').innerText = Math.floor(score);
+            baseSpeed += 0.0001;
 
-            // 1. Move Player (Smooth Lane Change)
-            const targetX = (laneIndex - 1) * LANE_WIDTH;
-            playerCar.position.x += (targetX - playerCar.position.x) * 10 * dt;
-            // Banking/Tilt
-            playerCar.rotation.z = (playerCar.position.x - targetX) * -0.1;
-            // Engine Idle Bob
-            playerCar.children[0].position.y = 1.5 + Math.sin(now * 0.02) * 0.05;
+            // Update Game Objects
+            for(let i=gameObjects.length-1; i>=0; i--) {
+                const o = gameObjects[i];
+                o.position.z += currentSpeed * 1.5;
 
-            // 2. Move Stripes (Infinite Road Illusion)
-            roadStripes.forEach(s => {
-                s.position.z += currentSpeed * 60 * dt;
-                if(s.position.z > 10) s.position.z -= 300; // Loop back
-            });
+                // Coin/Boost Rotation
+                if(o.userData.type !== 'enemy') o.rotation.y += 0.05;
 
-            // 3. Move Objects & Logic
-            updateEntities(enemies, currentSpeed, dt, 'enemy');
-            updateEntities(coins, currentSpeed, dt, 'pickup');
-            updateEntities(props, currentSpeed, dt, 'prop');
-            updateParticles(dt);
-
-            // 4. Spawning
-            spawnTimer -= currentSpeed * dt;
-            if(spawnTimer <= 0) {
-                spawnTimer = 1.5 + Math.random(); // Random interval
-                const r = Math.random();
-                if(r < 0.6) spawnEnemy();
-                else if(r < 0.9) spawnCoin();
-                else spawnBoost();
-            }
-
-            envTimer -= currentSpeed * dt;
-            if(envTimer <= 0) {
-                envTimer = 0.5;
-                spawnBuilding();
-            }
-        }
-
-        function updateEntities(arr, speed, dt, type) {
-            for (let i = arr.length - 1; i >= 0; i--) {
-                const obj = arr[i];
-                obj.mesh.position.z += speed * 60 * dt;
-
-                // Rotations
-                if (type === 'pickup') {
-                    if (obj.type === 'coin') {
-                        obj.mesh.rotation.y += 3 * dt; // Spin Coin
-                    } else {
-                        obj.mesh.rotation.y += 2 * dt;
-                        obj.mesh.rotation.x += 1 * dt;
-                    }
-                }
-
-                // Collision Detection
-                if (obj.active && Math.abs(obj.mesh.position.z - playerCar.position.z) < 2.0) {
-                    if (Math.abs(obj.mesh.position.x - playerCar.position.x) < 2.0) {
-                        
-                        if (type === 'enemy') {
-                            handleCrash();
-                        } else if (type === 'pickup') {
-                            if (obj.type === 'coin') {
-                                score += 100;
-                                // FX
-                                createParticles(obj.mesh.position.x, obj.mesh.position.y, obj.mesh.position.z, 0xffd700);
-                            } else {
-                                boostTime = 3.0; // 3 seconds boost
-                                createParticles(obj.mesh.position.x, obj.mesh.position.y, obj.mesh.position.z, 0x00ffff);
-                            }
-                            
-                            // Remove pickup
-                            scene.remove(obj.mesh);
-                            arr.splice(i, 1);
-                            continue;
+                // Collision
+                if(Math.abs(o.position.z - player.position.z) < 2) {
+                    if(Math.abs(o.position.x - player.position.x) < 2.5) {
+                        if(o.userData.type === 'enemy') {
+                            endGame();
+                        } else if(o.userData.type === 'coin') {
+                            score += 500;
+                            scene.remove(o);
+                            gameObjects.splice(i, 1);
+                        } else {
+                            boostLeft = 200;
+                            scene.remove(o);
+                            gameObjects.splice(i, 1);
                         }
                     }
                 }
 
-                // Cleanup
-                if (obj.mesh.position.z > 20) {
-                    scene.remove(obj.mesh);
-                    arr.splice(i, 1);
+                if(o.position.z > 20) {
+                    scene.remove(o);
+                    gameObjects.splice(i, 1);
                 }
             }
-        }
 
-        function updateParticles(dt) {
-            for (let i = particles.length - 1; i >= 0; i--) {
-                const p = particles[i];
-                p.life -= dt * 2;
-                p.mesh.position.x += p.vel.x;
-                p.mesh.position.y += p.vel.y;
-                p.mesh.position.z += p.vel.z;
-                p.mesh.rotation.x += p.vel.x;
-                p.mesh.scale.setScalar(p.life);
-                
-                if(p.life <= 0) {
-                    scene.remove(p.mesh);
-                    particles.splice(i, 1);
+            // Update Scenery
+            for(let i=scenery.length-1; i>=0; i--) {
+                const s = scenery[i];
+                s.position.z += currentSpeed * 1.5;
+                if(s.position.z > 20) {
+                    scene.remove(s);
+                    scenery.splice(i, 1);
                 }
             }
+
+            // Timers
+            spawnClock++;
+            if(spawnClock % 40 === 0) spawnObject();
+            if(spawnClock % 15 === 0) spawnScenery();
+
+            renderer.render(scene, camera);
         }
 
-        function handleCrash() {
+        function endGame() {
             gameActive = false;
-            
-            // Flash Screen
-            const flash = document.getElementById('flash-white');
-            flash.style.opacity = 1;
-            setTimeout(() => flash.style.opacity = 0, 100);
-
-            // Update High Score
+            document.getElementById('game-over-screen').classList.remove('hidden');
+            document.getElementById('final-score').innerText = Math.floor(score);
             if(score > highScore) {
                 highScore = Math.floor(score);
-                localStorage.setItem('neonRacerHigh', highScore);
-                document.getElementById('best-display').innerText = highScore;
+                localStorage.setItem('4kRacerHigh', highScore);
+                document.getElementById('high-score-text').innerText = highScore;
             }
-
-            document.getElementById('final-score').innerText = Math.floor(score);
-            document.getElementById('game-over-screen').classList.remove('hidden');
         }
 
-        // --- CONTROLS ---
-        function onKeyDown(e) {
-            if (!gameActive) return;
-            if (e.key === 'ArrowLeft') moveLane(-1);
-            if (e.key === 'ArrowRight') moveLane(1);
-        }
-
-        let touchStartX = 0;
-        function initTouch() {
-            document.addEventListener('touchstart', e => {
-                touchStartX = e.changedTouches[0].screenX;
+        function setupControls() {
+            // Keyboard
+            window.addEventListener('keydown', (e) => {
+                if(e.key === 'ArrowLeft' && lane > 0) lane--;
+                if(e.key === 'ArrowRight' && lane < 2) lane++;
             });
-            document.addEventListener('touchend', e => {
-                const touchEndX = e.changedTouches[0].screenX;
-                if (touchEndX < touchStartX - 30) moveLane(-1);
-                if (touchEndX > touchStartX + 30) moveLane(1);
-            });
-        }
 
-        function moveLane(dir) {
-            const next = laneIndex + dir;
-            if (next >= 0 && next <= 2) {
-                laneIndex = next;
-            }
+            // Touch
+            let startX = 0;
+            window.addEventListener('touchstart', (e) => startX = e.touches[0].clientX);
+            window.addEventListener('touchend', (e) => {
+                let diff = e.changedTouches[0].clientX - startX;
+                if(diff < -40 && lane > 0) lane--;
+                if(diff > 40 && lane < 2) lane++;
+            });
         }
 
         function onResize() {
@@ -743,11 +414,8 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        // Start
-        init();
-
+        initScene();
     </script>
 </body>
 </html>
-
 
