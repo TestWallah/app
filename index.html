@@ -1,237 +1,753 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hindi Sahitya Quiz & Slap</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Ultimate 3D Subway Racer</title>
     <style>
-        @keyframes shake {
-            0%, 100% { transform: translate(0,0); }
-            10%, 30%, 50%, 70%, 90% { transform: translate(-5px, 0); }
-            20%, 40%, 60%, 80% { transform: translate(5px, 0); }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #1a1a1a;
+            font-family: 'Orbitron', sans-serif;
+            touch-action: none;
+            user-select: none;
         }
-        .shake-effect { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; border: 4px solid red; }
-        .slap-btn { background: linear-gradient(45deg, #ff416c, #ff4b2b); transition: 0.2s; }
-        .slap-btn:active { transform: scale(0.9); }
+
+        #game-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* UI LAYER */
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .hud-header {
+            display: flex;
+            justify-content: space-between;
+            padding: 25px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+        }
+
+        .hud-stat {
+            color: #fff;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+            transform: skew(-10deg);
+        }
+
+        .hud-label {
+            font-size: 14px;
+            color: #aaa;
+            letter-spacing: 2px;
+            display: block;
+        }
+
+        .hud-value {
+            font-size: 32px;
+            font-weight: 900;
+            color: #00ffff;
+        }
+
+        .coin-value {
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+        }
+
+        /* NITRO BAR */
+        .nitro-container {
+            position: absolute;
+            right: 20px;
+            bottom: 30%;
+            width: 15px;
+            height: 200px;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            display: none; /* Show only when active */
+        }
+
+        .nitro-fill {
+            width: 100%;
+            height: 0%;
+            background: linear-gradient(to top, #ff0000, #ffff00);
+            position: absolute;
+            bottom: 0;
+            transition: height 0.1s linear;
+        }
+
+        /* SCREENS */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            pointer-events: auto;
+            transition: opacity 0.4s ease;
+        }
+
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        h1 {
+            font-size: 5rem;
+            color: transparent;
+            -webkit-text-stroke: 2px #00ffff;
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            margin: 0;
+            text-transform: uppercase;
+            font-style: italic;
+            text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+            animation: glow 2s infinite alternate;
+            text-align: center;
+        }
+
+        .btn-play {
+            margin-top: 40px;
+            padding: 20px 60px;
+            font-size: 24px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            color: #000;
+            background: #00ffff;
+            border: none;
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px #00ffff;
+        }
+
+        .btn-play:hover {
+            background: #fff;
+            transform: scale(1.1);
+            box-shadow: 0 0 40px #00ffff;
+        }
+
+        .controls-hint {
+            margin-top: 30px;
+            color: #888;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .key {
+            border: 1px solid #555;
+            padding: 5px 10px;
+            border-radius: 5px;
+            background: #222;
+            color: #fff;
+            margin: 0 5px;
+        }
+
+        /* FX OVERLAYS */
+        #speed-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, transparent 50%, rgba(255, 255, 255, 0.1) 90%);
+            z-index: 5;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+
+        #flash-white {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px #00ffff; }
+            to { text-shadow: 0 0 40px #ff00ff; }
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 3rem; }
+            .btn-play { padding: 15px 40px; font-size: 18px; }
+        }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
 </head>
-<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center p-4" id="main-body">
+<body>
 
-    <!-- Login -->
-    <div id="login-screen" class="w-full max-w-md bg-slate-800 p-8 rounded-2xl shadow-2xl border border-slate-700">
-        <h1 class="text-3xl font-black text-center mb-2 text-yellow-400">CLASS 10 HINDI</h1>
-        <p class="text-center text-slate-400 mb-8">शुक्ल एवं शुक्लोत्तर युग</p>
-        <input type="text" id="username" placeholder="अपना नाम" class="w-full p-4 bg-slate-700 rounded-lg mb-4 outline-none border-2 border-transparent focus:border-yellow-400">
-        <input type="text" id="roomId" placeholder="Room ID (जैसे: test1)" class="w-full p-4 bg-slate-700 rounded-lg mb-6 outline-none border-2 border-transparent focus:border-yellow-400">
-        <button onclick="joinGame()" id="join-btn" class="w-full bg-yellow-500 hover:bg-yellow-600 text-slate-900 font-bold py-4 rounded-lg text-xl uppercase">Khel Shuru Karein</button>
-    </div>
+    <!-- VISUALS -->
+    <div id="game-container"></div>
+    <div id="speed-lines"></div>
+    <div id="flash-white"></div>
 
-    <!-- Waiting -->
-    <div id="waiting-screen" class="hidden text-center bg-slate-800 p-10 rounded-2xl border border-slate-700 shadow-xl">
-        <div class="inline-block animate-bounce mb-4 text-5xl">⏳</div>
-        <h2 class="text-2xl font-bold mb-2">Player 2 का इंतज़ार...</h2>
-        <p class="text-slate-400">Room ID: <span id="display-room" class="text-yellow-400 font-mono"></span></p>
-    </div>
-
-    <!-- Game -->
-    <div id="game-screen" class="hidden w-full max-w-xl">
-        <div class="flex justify-between items-center mb-6 bg-slate-800 p-4 rounded-xl border border-slate-700">
-            <div class="text-center px-4">
-                <div id="p1-name" class="text-xs uppercase text-slate-400">P1</div>
-                <div id="p1-score" class="text-3xl font-black text-green-400">0</div>
+    <!-- UI -->
+    <div id="ui-layer">
+        <div class="hud-header">
+            <div class="hud-stat">
+                <span class="hud-label">SCORE</span>
+                <span class="hud-value" id="score-display">0</span>
             </div>
-            <div class="text-xl font-black text-slate-500">VS</div>
-            <div class="text-center px-4">
-                <div id="p2-name" class="text-xs uppercase text-slate-400">P2</div>
-                <div id="p2-score" class="text-3xl font-black text-green-400">0</div>
+            <div class="hud-stat" style="text-align: right;">
+                <span class="hud-label">BEST</span>
+                <span class="hud-value coin-value" id="best-display">0</span>
             </div>
         </div>
-
-        <div class="bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-700 mb-6">
-            <div class="flex justify-between mb-4">
-                <span class="text-yellow-400 font-bold">Q <span id="q-num">1</span>/30</span>
-            </div>
-            <h2 id="q-text" class="text-xl font-bold mb-6 min-h-[80px]">Sawaal load ho raha hai...</h2>
-            <div id="options" class="grid grid-cols-1 gap-3"></div>
+        <div class="nitro-container" id="nitro-bar">
+            <div class="nitro-fill" id="nitro-fill"></div>
         </div>
+    </div>
 
-        <button id="slap-btn" onclick="sendSlap()" disabled class="slap-btn w-full py-5 rounded-2xl text-2xl font-black shadow-xl opacity-30 cursor-not-allowed">👋 THAPPAD MAAREIN!</button>
-        <p id="hint" class="text-center mt-4 text-slate-500 italic">Sahi jawab dein tabhi thappad maar payenge!</p>
+    <!-- START SCREEN -->
+    <div id="start-screen" class="screen">
+        <h1>NEON<br>RACER 3D</h1>
+        <p style="color:#fff; letter-spacing: 3px; margin-top: -10px;">SUBWAY EDITION</p>
+        <button class="btn-play" onclick="startGame()">START ENGINE</button>
+        <div class="controls-hint">
+            <span class="desktop-only">Use <span class="key">←</span> <span class="key">→</span> to Drive</span>
+            <span class="mobile-only" style="display:none;">Swipe Left/Right to Drive</span>
+        </div>
+    </div>
+
+    <!-- GAME OVER SCREEN -->
+    <div id="game-over-screen" class="screen hidden">
+        <h1 style="font-size: 4rem; color: #ff3333; -webkit-text-stroke: 2px #ff0000;">CRASHED!</h1>
+        <div class="hud-stat" style="text-align: center; margin: 20px;">
+            <span class="hud-label">FINAL SCORE</span>
+            <span class="hud-value" id="final-score">0</span>
+        </div>
+        <button class="btn-play" onclick="resetGame()">RACE AGAIN</button>
     </div>
 
     <script>
-        const API_URL = "https://sheetdb.io/api/v1/hkzyjglo32xu3";
-        let state = { room: "", me: "", myName: "", qIdx: -1, busy: false };
+        // --- ASSETS CONFIG ---
+        const ASSETS = {
+            player: 'https://i.ibb.co/TDcsqmxX/1000-F-69908284-1zs-Id-LG3r-Wjy-BYj9-Hiu6l-Ao99-KYc-ZVOR-removebg-preview.png',
+            enemy: 'https://i.ibb.co/CpZnCNCq/car-front-view-flat-illustration-white-background-947007-28148-removebg-preview.png',
+            coin: 'https://i.ibb.co/d3LvkB1/file-00000000d2987206bd36045dca44abee.png',
+            boost: 'https://i.ibb.co/GQfHFX7z/file-0000000062c872069f12dac731f7b6fb.png'
+        };
 
-        const questions = [
-            { q: "‘चिन्तामणि’ के लेखक कौन हैं?", opts: ["प्रेमचंद", "श्यामसुन्दर दास", "आचार्य रामचन्द्र शुक्ल", "गुलाबराय"], ans: 2 },
-            { q: "शुक्ल युग की समयावधि क्या है?", opts: ["1900-1920", "1919-1938", "1938-1947", "1850-1900"], ans: 1 },
-            { q: "‘गबन’ किस विधा की रचना है?", opts: ["नाटक", "उपन्यास", "कहानी", "जीवनी"], ans: 1 },
-            { q: "‘ध्रुवस्वामिनी’ नाटक के लेखक हैं?", opts: ["हरिकृष्ण प्रेमी", "जयशंकर प्रसाद", "विष्णु प्रभाकर", "मोहन राकेश"], ans: 1 },
-            { q: "‘कलम का सिपाही’ किसकी रचना है?", opts: ["अमृतराय", "प्रेमचंद", "यशपाल", "निराला"], ans: 0 },
-            { q: "‘मेरी असफलताएँ’ किस विधा की रचना है?", opts: ["जीवनी", "आत्मकथा", "कहानी", "डायरी"], ans: 1 },
-            { q: "‘बाणभट्ट की आत्मकथा’ के लेखक हैं?", opts: ["हजारी प्रसाद द्विवेदी", "शुक्ल", "अज्ञेय", "यशपाल"], ans: 0 },
-            { q: "‘गुनाहों का देवता’ किसने लिखा?", opts: ["धर्मवीर भारती", "कमलेश्वर", "प्रेमचंद", "नागर"], ans: 0 },
-            { q: "‘सूरज का सातवाँ घोड़ा’ किसकी कृति है?", opts: ["मोहन राकेश", "धर्मवीर भारती", "अज्ञेय", "यशपाल"], ans: 1 },
-            { q: "‘मैला आँचल’ किसका उपन्यास है?", opts: ["फणीश्वरनाथ रेणु", "प्रेमचंद", "अमृतराय", "नागार्जुन"], ans: 0 }
-        ]; // Space bachane ke liye 10 sawaal rakhe hain, aap 30 kar sakte hain
+        // --- GLOBAL VARIABLES ---
+        let scene, camera, renderer;
+        let playerCar, roadGroup;
+        let particles = [];
+        let gameActive = false;
+        let score = 0;
+        let highScore = localStorage.getItem('neonRacerHigh') || 0;
+        let gameSpeed = 0.8;
+        let baseSpeed = 0.8;
+        let boostTime = 0;
+        let laneIndex = 1; // 0=Left, 1=Center, 2=Right
+        const LANE_WIDTH = 4.5;
+        
+        // Object Pools
+        let enemies = [];
+        let coins = [];
+        let props = [];
+        let roadStripes = [];
 
-        async function joinGame() {
-            const name = document.getElementById('username').value.trim();
-            const room = document.getElementById('roomId').value.trim();
-            if(!name || !room) return Swal.fire("Rukiye!", "Naam aur Room ID zaroori hai", "warning");
+        // Animation Frames
+        let frameId;
 
-            state.myName = name;
-            state.room = room;
-            document.getElementById('display-room').innerText = room;
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('waiting-screen').classList.remove('hidden');
+        // Init High Score
+        document.getElementById('best-display').innerText = highScore;
 
-            try {
-                const res = await fetch(`${API_URL}/search?room_id=${room}`);
-                const data = await res.json();
+        // Mobile Check
+        if (/Mobi|Android/i.test(navigator.userAgent)) {
+            document.querySelector('.mobile-only').style.display = 'inline';
+            document.querySelector('.desktop-only').style.display = 'none';
+        }
+
+        // --- INITIALIZATION ---
+        function init() {
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x050510);
+            scene.fog = new THREE.FogExp2(0x050510, 0.015);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 200);
+            camera.position.set(0, 5, 10);
+            camera.lookAt(0, 0, -10);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('game-container').appendChild(renderer.domElement);
+
+            // Lighting
+            const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
+            scene.add(hemiLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(10, 20, 10);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 1024;
+            dirLight.shadow.mapSize.height = 1024;
+            scene.add(dirLight);
+
+            // Environment Light (Neon Glow)
+            const pointLight = new THREE.PointLight(0x00ffff, 0.5, 20);
+            pointLight.position.set(0, 5, -5);
+            scene.add(pointLight);
+
+            createWorld();
+            createPlayer();
+            
+            // Events
+            window.addEventListener('resize', onResize);
+            document.addEventListener('keydown', onKeyDown);
+            initTouch();
+
+            // Initial Render
+            renderer.render(scene, camera);
+        }
+
+        // --- WORLD GENERATION ---
+        function createWorld() {
+            // Road
+            const roadGeo = new THREE.PlaneGeometry(30, 400);
+            const roadMat = new THREE.MeshStandardMaterial({ 
+                color: 0x1a1a1a, 
+                roughness: 0.8,
+                metalness: 0.2
+            });
+            const road = new THREE.Mesh(roadGeo, roadMat);
+            road.rotation.x = -Math.PI / 2;
+            road.position.z = -150;
+            road.receiveShadow = true;
+            scene.add(road);
+
+            // Side Grass / Terrain
+            const terrainGeo = new THREE.PlaneGeometry(300, 400);
+            const terrainMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0a });
+            const terrain = new THREE.Mesh(terrainGeo, terrainMat);
+            terrain.rotation.x = -Math.PI / 2;
+            terrain.position.y = -0.1;
+            terrain.position.z = -150;
+            scene.add(terrain);
+
+            // Moving Road Stripes (For speed illusion)
+            const stripeGeo = new THREE.PlaneGeometry(0.5, 6);
+            const stripeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            
+            for(let i=0; i<20; i++) {
+                // Left Line
+                let s1 = new THREE.Mesh(stripeGeo, stripeMat);
+                s1.rotation.x = -Math.PI / 2;
+                s1.position.set(-LANE_WIDTH/2, 0.05, -i * 15);
+                scene.add(s1);
+                roadStripes.push(s1);
+
+                // Right Line
+                let s2 = new THREE.Mesh(stripeGeo, stripeMat);
+                s2.rotation.x = -Math.PI / 2;
+                s2.position.set(LANE_WIDTH/2, 0.05, -i * 15);
+                scene.add(s2);
+                roadStripes.push(s2);
+            }
+        }
+
+        function createPlayer() {
+            const texLoader = new THREE.TextureLoader();
+            const carTex = texLoader.load(ASSETS.player);
+            
+            // Using a Group to handle tilt separately from position
+            playerCar = new THREE.Group();
+
+            // Car Body (Sprite-like plane but with shadow volume)
+            // We use a BoxGeometry scaled thin to catch shadows, but textured on top?
+            // Better: A Plane for visual, an invisible box for shadow casting?
+            // Let's stick to the Plane for the requested PNG look, but enhanced.
+            
+            const carGeo = new THREE.PlaneGeometry(3, 3);
+            const carMat = new THREE.MeshStandardMaterial({ 
+                map: carTex, 
+                transparent: true, 
+                side: THREE.DoubleSide,
+                alphaTest: 0.5 
+            });
+            const carMesh = new THREE.Mesh(carGeo, carMat);
+            carMesh.position.y = 1.5;
+            // Tilt it slightly back so it looks 3D-ish from top camera
+            carMesh.rotation.x = -0.3; 
+            carMesh.castShadow = true; // Shadows are tricky with transparent planes, but let's try
+            carMesh.customDepthMaterial = new THREE.MeshDepthMaterial({
+                depthPacking: THREE.RGBADepthPacking,
+                map: carTex,
+                alphaTest: 0.5
+            });
+
+            playerCar.add(carMesh);
+
+            // Add Car Shadow (Fake Blob)
+            const shadowGeo = new THREE.CircleGeometry(1.2, 32);
+            const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.6 });
+            const shadow = new THREE.Mesh(shadowGeo, shadowMat);
+            shadow.rotation.x = -Math.PI / 2;
+            shadow.position.y = 0.1;
+            playerCar.add(shadow);
+
+            scene.add(playerCar);
+        }
+
+        // --- GAMEPLAY FUNCTIONS ---
+        function startGame() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('game-over-screen').classList.add('hidden');
+            
+            gameActive = true;
+            score = 0;
+            boostTime = 0;
+            gameSpeed = baseSpeed;
+            laneIndex = 1;
+            
+            // Reset Player
+            playerCar.position.x = 0;
+            playerCar.rotation.z = 0;
+
+            // Clear Objects
+            clearObjects(enemies);
+            clearObjects(coins);
+            clearObjects(props);
+            
+            // Start Loop
+            lastTime = performance.now();
+            update();
+        }
+
+        function clearObjects(arr) {
+            arr.forEach(obj => scene.remove(obj.mesh));
+            arr.length = 0;
+        }
+
+        function resetGame() {
+            // Just restart
+            startGame();
+        }
+
+        function spawnEnemy() {
+            const lane = Math.floor(Math.random() * 3);
+            const xPos = (lane - 1) * LANE_WIDTH;
+            
+            const tex = new THREE.TextureLoader().load(ASSETS.enemy);
+            const geo = new THREE.PlaneGeometry(3.5, 3.5);
+            const mat = new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.5 });
+            const mesh = new THREE.Mesh(geo, mat);
+            
+            mesh.position.set(xPos, 1.8, -100);
+            mesh.rotation.x = -0.2;
+            
+            scene.add(mesh);
+            enemies.push({ mesh: mesh, lane: lane, active: true });
+        }
+
+        function spawnCoin() {
+            const lane = Math.floor(Math.random() * 3);
+            const xPos = (lane - 1) * LANE_WIDTH;
+
+            const tex = new THREE.TextureLoader().load(ASSETS.coin);
+            // HUGE COIN Geometry
+            const geo = new THREE.CylinderGeometry(1.5, 1.5, 0.2, 32);
+            // Rotate texture for cylinder cap
+            tex.rotation = Math.PI / 2;
+            tex.center.set(0.5, 0.5);
+            
+            const matSides = new THREE.MeshStandardMaterial({ color: 0xFFD700, metalness: 1, roughness: 0.3 });
+            const matFace = new THREE.MeshStandardMaterial({ map: tex, color: 0xFFFFFF });
+            
+            // Array of materials: side, top, bottom
+            const mesh = new THREE.Mesh(geo, [matSides, matFace, matFace]);
+            
+            mesh.position.set(xPos, 1.5, -100);
+            mesh.rotation.x = Math.PI / 2; // Face camera initially
+            mesh.rotation.z = Math.PI / 2; // Upright like a wheel
+
+            scene.add(mesh);
+            coins.push({ mesh: mesh, type: 'coin', active: true });
+        }
+
+        function spawnBoost() {
+            const lane = Math.floor(Math.random() * 3);
+            const xPos = (lane - 1) * LANE_WIDTH;
+
+            const tex = new THREE.TextureLoader().load(ASSETS.boost);
+            const geo = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+            const mat = new THREE.MeshStandardMaterial({ map: tex, transparent: true });
+            const mesh = new THREE.Mesh(geo, mat);
+            
+            mesh.position.set(xPos, 1.5, -100);
+            
+            scene.add(mesh);
+            coins.push({ mesh: mesh, type: 'boost', active: true });
+        }
+
+        function spawnBuilding() {
+            // Neon Buildings
+            const width = Math.random() * 5 + 5;
+            const height = Math.random() * 15 + 10;
+            const depth = Math.random() * 5 + 5;
+            
+            const geo = new THREE.BoxGeometry(width, height, depth);
+            const color = new THREE.Color().setHSL(Math.random(), 0.8, 0.5);
+            const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.2 });
+            const mesh = new THREE.Mesh(geo, mat);
+            
+            // Left or Right side
+            const side = Math.random() > 0.5 ? 1 : -1;
+            const xPos = side * (15 + Math.random() * 10);
+            
+            mesh.position.set(xPos, height/2, -120);
+            scene.add(mesh);
+            props.push({ mesh: mesh });
+        }
+
+        // --- PARTICLE SYSTEM ---
+        function createParticles(x, y, z, color) {
+            for(let i=0; i<5; i++) {
+                const geo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+                const mat = new THREE.MeshBasicMaterial({ color: color });
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.set(x + (Math.random()-0.5), y, z);
+                scene.add(mesh);
+                particles.push({ mesh: mesh, life: 1.0, vel: {x: (Math.random()-0.5)*0.1, y: Math.random()*0.1, z: 0.2} });
+            }
+        }
+
+        // --- UPDATE LOOP ---
+        let lastTime = 0;
+        let spawnTimer = 0;
+        let envTimer = 0;
+
+        function update() {
+            if(!gameActive) return;
+            frameId = requestAnimationFrame(update);
+
+            const now = performance.now();
+            const dt = Math.min((now - lastTime) / 1000, 0.1); // Limit dt
+            lastTime = now;
+
+            // Difficulty Curve
+            baseSpeed += 0.0001;
+            let currentSpeed = baseSpeed;
+            if (boostTime > 0) {
+                currentSpeed *= 2.0;
+                boostTime -= dt;
+                // UI Update
+                document.getElementById('nitro-bar').style.display = 'block';
+                document.getElementById('nitro-fill').style.height = (boostTime / 3 * 100) + '%';
+                // Effects
+                document.getElementById('speed-lines').style.opacity = 0.8;
                 
-                if(data.length === 0) {
-                    state.me = "player_1";
-                    await fetch(API_URL, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({data: [{
-                            room_id: room, player_1_name: name, player_2_name: "",
-                            p1_score: 0, p2_score: 0, current_question_index: 0,
-                            player_1_action: "none", player_2_action: "none"
-                        }]})
-                    });
-                } else if(data[0].player_2_name === "") {
-                    state.me = "player_2";
-                    await fetch(`${API_URL}/room_id/${room}`, {
-                        method: 'PATCH',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({data: {player_2_name: name}})
-                    });
-                } else {
-                    Swal.fire("Full!", "Ye room full ho chuka hai", "error");
-                    location.reload();
-                }
-                startSync();
-            } catch(e) {
-                Swal.fire("API Error", "Limit khatam ho gayi shayad. Kal try karein.", "error");
+                // Shake Camera
+                camera.position.x += (Math.random() - 0.5) * 0.1;
+                camera.position.y = 5 + (Math.random() - 0.5) * 0.1;
+            } else {
+                document.getElementById('nitro-bar').style.display = 'none';
+                document.getElementById('speed-lines').style.opacity = 0;
+                // Restore Camera
+                camera.position.y += (5 - camera.position.y) * 0.1;
+                camera.position.x += (0 - camera.position.x) * 0.1;
+            }
+
+            // Score
+            score += currentSpeed * 10 * dt;
+            document.getElementById('score-display').innerText = Math.floor(score);
+
+            // 1. Move Player (Smooth Lane Change)
+            const targetX = (laneIndex - 1) * LANE_WIDTH;
+            playerCar.position.x += (targetX - playerCar.position.x) * 10 * dt;
+            // Banking/Tilt
+            playerCar.rotation.z = (playerCar.position.x - targetX) * -0.1;
+            // Engine Idle Bob
+            playerCar.children[0].position.y = 1.5 + Math.sin(now * 0.02) * 0.05;
+
+            // 2. Move Stripes (Infinite Road Illusion)
+            roadStripes.forEach(s => {
+                s.position.z += currentSpeed * 60 * dt;
+                if(s.position.z > 10) s.position.z -= 300; // Loop back
+            });
+
+            // 3. Move Objects & Logic
+            updateEntities(enemies, currentSpeed, dt, 'enemy');
+            updateEntities(coins, currentSpeed, dt, 'pickup');
+            updateEntities(props, currentSpeed, dt, 'prop');
+            updateParticles(dt);
+
+            // 4. Spawning
+            spawnTimer -= currentSpeed * dt;
+            if(spawnTimer <= 0) {
+                spawnTimer = 1.5 + Math.random(); // Random interval
+                const r = Math.random();
+                if(r < 0.6) spawnEnemy();
+                else if(r < 0.9) spawnCoin();
+                else spawnBoost();
+            }
+
+            envTimer -= currentSpeed * dt;
+            if(envTimer <= 0) {
+                envTimer = 0.5;
+                spawnBuilding();
             }
         }
 
-        function startSync() {
-            // API bachane ke liye 3.5 seconds ka interval
-            setInterval(async () => {
-                if(state.busy) return;
-                try {
-                    const res = await fetch(`${API_URL}/search?room_id=${state.room}`);
-                    const data = await res.json();
-                    if(data.length > 0) syncUI(data[0]);
-                } catch(e) {}
-            }, 3500);
-        }
+        function updateEntities(arr, speed, dt, type) {
+            for (let i = arr.length - 1; i >= 0; i--) {
+                const obj = arr[i];
+                obj.mesh.position.z += speed * 60 * dt;
 
-        function syncUI(db) {
-            if(db.player_1_name && db.player_2_name) {
-                document.getElementById('waiting-screen').classList.add('hidden');
-                document.getElementById('game-screen').classList.remove('hidden');
-                document.getElementById('p1-name').innerText = db.player_1_name;
-                document.getElementById('p2-name').innerText = db.player_2_name;
-                document.getElementById('p1-score').innerText = db.p1_score;
-                document.getElementById('p2-score').innerText = db.p2_score;
-
-                const dbQIdx = parseInt(db.current_question_index);
-                if(dbQIdx !== state.qIdx) {
-                    state.qIdx = dbQIdx;
-                    renderQuestion(dbQIdx);
-                }
-
-                // Action logic
-                const oppAction = (state.me === "player_1") ? db.player_2_action : db.player_1_action;
-                if(oppAction === "slap") handleIncomingSlap();
-            }
-        }
-
-        function renderQuestion(idx) {
-            if(idx >= questions.length) {
-                document.getElementById('q-text').innerText = "Khel Khatam! 🎉";
-                document.getElementById('options').innerHTML = "";
-                return;
-            }
-            const q = questions[idx];
-            document.getElementById('q-num').innerText = idx + 1;
-            document.getElementById('q-text').innerText = q.q;
-            const container = document.getElementById('options');
-            container.innerHTML = "";
-            q.opts.forEach((opt, i) => {
-                const btn = document.createElement('button');
-                btn.className = "w-full text-left p-4 bg-slate-700 hover:bg-slate-600 rounded-xl border border-slate-600 transition";
-                btn.innerText = opt;
-                btn.onclick = () => {
-                    if(i === q.ans) {
-                        document.getElementById('slap-btn').disabled = false;
-                        document.getElementById('slap-btn').style.opacity = "1";
-                        document.getElementById('slap-btn').style.cursor = "pointer";
-                        document.getElementById('hint').innerText = "SAHI JAWAB! AB THAPPAD MAARO!";
-                        document.getElementById('hint').className = "text-center mt-4 text-green-400 font-bold";
-                        container.querySelectorAll('button').forEach(b => b.disabled = true);
+                // Rotations
+                if (type === 'pickup') {
+                    if (obj.type === 'coin') {
+                        obj.mesh.rotation.y += 3 * dt; // Spin Coin
                     } else {
-                        btn.classList.add('bg-red-900', 'border-red-500');
-                        container.querySelectorAll('button').forEach(b => b.disabled = true);
-                        document.getElementById('hint').innerText = "GALAT! Agle sawaal ka intezaar karein.";
+                        obj.mesh.rotation.y += 2 * dt;
+                        obj.mesh.rotation.x += 1 * dt;
                     }
-                };
-                container.appendChild(btn);
+                }
+
+                // Collision Detection
+                if (obj.active && Math.abs(obj.mesh.position.z - playerCar.position.z) < 2.0) {
+                    if (Math.abs(obj.mesh.position.x - playerCar.position.x) < 2.0) {
+                        
+                        if (type === 'enemy') {
+                            handleCrash();
+                        } else if (type === 'pickup') {
+                            if (obj.type === 'coin') {
+                                score += 100;
+                                // FX
+                                createParticles(obj.mesh.position.x, obj.mesh.position.y, obj.mesh.position.z, 0xffd700);
+                            } else {
+                                boostTime = 3.0; // 3 seconds boost
+                                createParticles(obj.mesh.position.x, obj.mesh.position.y, obj.mesh.position.z, 0x00ffff);
+                            }
+                            
+                            // Remove pickup
+                            scene.remove(obj.mesh);
+                            arr.splice(i, 1);
+                            continue;
+                        }
+                    }
+                }
+
+                // Cleanup
+                if (obj.mesh.position.z > 20) {
+                    scene.remove(obj.mesh);
+                    arr.splice(i, 1);
+                }
+            }
+        }
+
+        function updateParticles(dt) {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.life -= dt * 2;
+                p.mesh.position.x += p.vel.x;
+                p.mesh.position.y += p.vel.y;
+                p.mesh.position.z += p.vel.z;
+                p.mesh.rotation.x += p.vel.x;
+                p.mesh.scale.setScalar(p.life);
+                
+                if(p.life <= 0) {
+                    scene.remove(p.mesh);
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function handleCrash() {
+            gameActive = false;
+            
+            // Flash Screen
+            const flash = document.getElementById('flash-white');
+            flash.style.opacity = 1;
+            setTimeout(() => flash.style.opacity = 0, 100);
+
+            // Update High Score
+            if(score > highScore) {
+                highScore = Math.floor(score);
+                localStorage.setItem('neonRacerHigh', highScore);
+                document.getElementById('best-display').innerText = highScore;
+            }
+
+            document.getElementById('final-score').innerText = Math.floor(score);
+            document.getElementById('game-over-screen').classList.remove('hidden');
+        }
+
+        // --- CONTROLS ---
+        function onKeyDown(e) {
+            if (!gameActive) return;
+            if (e.key === 'ArrowLeft') moveLane(-1);
+            if (e.key === 'ArrowRight') moveLane(1);
+        }
+
+        let touchStartX = 0;
+        function initTouch() {
+            document.addEventListener('touchstart', e => {
+                touchStartX = e.changedTouches[0].screenX;
+            });
+            document.addEventListener('touchend', e => {
+                const touchEndX = e.changedTouches[0].screenX;
+                if (touchEndX < touchStartX - 30) moveLane(-1);
+                if (touchEndX > touchStartX + 30) moveLane(1);
             });
         }
 
-        async function sendSlap() {
-            state.busy = true;
-            const slapBtn = document.getElementById('slap-btn');
-            slapBtn.disabled = true;
-            slapBtn.style.opacity = "0.3";
-            
-            const curP1 = parseInt(document.getElementById('p1-score').innerText);
-            const curP2 = parseInt(document.getElementById('p2-score').innerText);
-
-            let payload = { current_question_index: state.qIdx + 1 };
-            if(state.me === "player_1") {
-                payload.player_1_action = "slap";
-                payload.p1_score = curP1 + 10;
-            } else {
-                payload.player_2_action = "slap";
-                payload.p2_score = curP2 + 10;
+        function moveLane(dir) {
+            const next = laneIndex + dir;
+            if (next >= 0 && next <= 2) {
+                laneIndex = next;
             }
-
-            try {
-                await fetch(`${API_URL}/room_id/${state.room}`, {
-                    method: 'PATCH',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({data: payload})
-                });
-            } catch(e) {}
-            state.busy = false;
         }
 
-        async function handleIncomingSlap() {
-            document.getElementById('main-body').classList.add('shake-effect');
-            setTimeout(() => document.getElementById('main-body').classList.remove('shake-effect'), 500);
-            
-            // Reset action in DB so it doesn't trigger again
-            let reset = {};
-            reset[state.me === "player_1" ? "player_2_action" : "player_1_action"] = "none";
-            
-            try {
-                await fetch(`${API_URL}/room_id/${state.room}`, {
-                    method: 'PATCH',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({data: reset})
-                });
-            } catch(e) {}
+        function onResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
         }
+
+        // Start
+        init();
+
     </script>
 </body>
 </html>
+
 
